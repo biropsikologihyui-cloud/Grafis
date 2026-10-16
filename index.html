@@ -2,155 +2,320 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Menggambar & Monitoring Kamera</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aplikasi Menggambar & Monitoring Ukuran A4</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 0;
         }
-        .container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .panel {
-            background: #fff;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
             padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
             align-items: center;
+            color: #333;
         }
-        canvas, video {
-            border: 2px solid #ccc;
-            background-color: #fff;
-            border-radius: 8px;
-            width: 400px;
-            height: 300px;
-        }
-        canvas { cursor: crosshair; }
-        .toolbar {
+
+        h2 {
             margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.4rem;
+        }
+
+        /* Toolbar Responsif */
+        .toolbar {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            background: #fff;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            justify-content: center;
+            background: #ffffff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             width: 100%;
-            max-width: 840px;
-            box-sizing: border-box;
+            max-width: 900px;
+            margin-bottom: 15px;
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .tool-group input[type="color"] {
+            border: none;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .tool-group input[type="range"] {
+            width: 100px;
+        }
+
+        /* Container Tata Letak Responsif */
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            width: 100%;
+            max-width: 900px;
             justify-content: center;
         }
+
+        /* Tampilan Mobile: Menjadi 1 Kolom Vertikal */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .panel {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .panel h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        /* Wrapper Kanvas dengan Rasio Proporsi Kertas A4 (1 : 1.414) */
+        .canvas-wrapper {
+            width: 100%;
+            aspect-ratio: 1 / 1.414; /* Rasio Standar Kertas A4 */
+            position: relative;
+            background-color: #ffffff;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+        }
+
+        /* Wrapper Kamera Tetap 4:3 */
+        .camera-wrapper {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            position: relative;
+            background-color: #fafafa;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        canvas, video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        canvas {
+            cursor: crosshair;
+            touch-action: none; /* Mencegah layar HP ikut ter-scroll saat menggambar */
+        }
+
+        /* Input Keterangan Gambar */
+        .description-box {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .description-box label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .description-box textarea {
+            width: 100%;
+            height: 60px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        /* Tombol */
         .btn {
-            background-color: #4CAF50;
+            background-color: #28a745;
             color: white;
             border: none;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+            border-radius: 6px;
             cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
         }
-        .btn-clear { background-color: #f44336; }
-        .btn-send { background-color: #008CBA; }
+
+        .btn-clear { background-color: #dc3545; }
+        .btn-send { background-color: #007bff; font-weight: bold; }
         .btn:hover { opacity: 0.9; }
-        #status { margin-top: 10px; font-weight: bold; color: #333; }
+
+        #status {
+            margin-top: 15px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #0056b3;
+            max-width: 900px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>Aplikasi Menggambar & Monitoring Kamera</h2>
+    <h2>Aplikasi Menggambar (Format A4) & Monitoring Kamera</h2>
     
+    <!-- Toolbar Kontrol -->
     <div class="toolbar">
-        <label>Warna: <input type="color" id="colorPicker" value="#000000"></label>
-        <label>Ukuran: <input type="range" id="brushSize" min="1" max="20" value="5"></label>
+        <div class="tool-group">
+            <label for="colorPicker">Warna:</label>
+            <input type="color" id="colorPicker" value="#000000">
+        </div>
+        <div class="tool-group">
+            <label for="brushSize">Ukuran:</label>
+            <input type="range" id="brushSize" min="1" max="20" value="5">
+        </div>
         <button class="btn btn-clear" id="clearBtn">Bersihkan Kanvas</button>
-        <button class="btn btn-send" id="sendAllBtn">Kirim Gambar ke Email & Drive</button>
+        <button class="btn btn-send" id="sendAllBtn">Kirim Gambar & Keterangan</button>
     </div>
 
+    <!-- Container Utama -->
     <div class="container">
-        <!-- Panel Menggambar -->
+        <!-- Panel 1: Area Menggambar Ukuran A4 -->
         <div class="panel">
-            <h3>Area Gambar</h3>
-            <canvas id="drawingCanvas" width="400" height="300"></canvas>
+            <h3>Lembar Gambar (Ukuran A4)</h3>
+            <div class="canvas-wrapper">
+                <!-- Resolusi internal canvas disesuaikan dengan proporsi A4 (misal: 595 x 842 piksel) -->
+                <canvas id="drawingCanvas" width="595" height="842"></canvas>
+            </div>
+            
+            <!-- Input Keterangan Gambar -->
+            <div class="description-box">
+                <label for="imageDesc">Deskripsi / Keterangan Gambar:</label>
+                <textarea id="imageDesc" placeholder="Jelaskan maksud atau cerita dari gambar A4 Anda di sini..."></textarea>
+            </div>
         </div>
 
-        <!-- Panel Monitoring Kamera -->
+        <!-- Panel 2: Monitoring Kamera -->
         <div class="panel">
             <h3>Monitoring Kamera</h3>
-            <video id="webcam" autoplay playsinline></video>
-            <button class="btn" style="margin-top: 10px;" id="snapBtn">Ambil Foto Kamera</button>
+            <div class="camera-wrapper">
+                <video id="webcam" autoplay playsinline muted></video>
+            </div>
+            <button class="btn" style="margin-top: 12px; width: 100%;" id="snapBtn">Ambil Snapshot Kamera</button>
         </div>
     </div>
 
     <p id="status"></p>
 
-    <!-- Canvas tersembunyi untuk mengambil frame foto kamera -->
-    <canvas id="snapshotCanvas" width="400" height="300" style="display:none;"></canvas>
+    <!-- Canvas Tersembunyi untuk Capture Kamera -->
+    <canvas id="snapshotCanvas" width="640" height="480" style="display:none;"></canvas>
 
     <script>
-        // --- KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL ---
+        // --- KONFIGURASI WEB APP GOOGLE APPS SCRIPT ---
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzENqmvxmj6kc1NW1pkzCWh9WJ_CEFAADqr2AI-Z5mifCGmTtuTvUTYWq_Xk-9iCYQTVQ/exec";
 
-        // --- SETUP KANVAS GAMBAR ---
+        // --- SETUP KANVAS MENGGAMBAR UKURAN A4 ---
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function initCanvas() {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        initCanvas();
 
         let isDrawing = false;
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; draw(e); });
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
 
         function draw(e) {
-            if (!isDrawing && e.type !== 'mousedown') return;
-            const rect = canvas.getBoundingClientRect();
+            if (!isDrawing) return;
+            const pos = getPos(e);
             ctx.strokeStyle = document.getElementById('colorPicker').value;
             ctx.lineWidth = document.getElementById('brushSize').value;
             ctx.lineCap = 'round';
-            
-            const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
-
-            if (e.type === 'mousedown') {
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            } else {
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            }
+            ctx.lineJoin = 'round';
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
         }
 
-        document.getElementById('clearBtn').addEventListener('click', () => {
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        });
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        // Event Listener Mouse & Touch (Mobile Support)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
+
+        canvas.addEventListener('touchstart', (e) => { startDrawing(e); e.preventDefault(); });
+        canvas.addEventListener('touchmove', (e) => { draw(e); e.preventDefault(); });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        document.getElementById('clearBtn').addEventListener('click', initCanvas);
 
         // --- SETUP WEBCAM ---
         const video = document.getElementById('webcam');
-        navigator.mediaDevices.getUserMedia({ video: true })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
             .then(stream => { video.srcObject = stream; })
-            .catch(err => { console.warn("Kamera tidak diizinkan / tidak tersedia: ", err); });
+            .catch(err => { console.warn("Kamera tidak diizinkan / tidak tersedia:", err); });
 
-        // --- FUNGSI KIRIM KE GOOGLE DRIVE (VIA APPS SCRIPT) ---
-        async function uploadToGoogleDrive(dataURL, filename) {
-            document.getElementById('status').innerText = "Mengunggah gambar ke Google Drive...";
+        // --- UNGGAH KE GOOGLE DRIVE VIA APPS SCRIPT ---
+        async function uploadToGoogleDrive(dataURL, filename, description = "") {
             try {
-                let response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: "POST",
-                    mode: "no-cors", // Diperlukan untuk Apps Script Web App sederhana
+                    mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ file: dataURL, filename: filename })
+                    body: JSON.stringify({
+                        file: dataURL,
+                        filename: filename,
+                        description: description
+                    })
                 });
                 return true;
             } catch (error) {
@@ -159,35 +324,43 @@
             }
         }
 
-        // --- TOMBOL KIRIM UTAMA ---
+        // --- TOMBOL KIRIM SEMUA ---
         document.getElementById('sendAllBtn').addEventListener('click', async () => {
             const statusText = document.getElementById('status');
-            statusText.innerText = "Memproses pengiriman...";
+            const imageDescription = document.getElementById('imageDesc').value;
 
-            // 1. Ambil data gambar hasil coretan
+            statusText.innerText = "Mengunggah lembar A4 & foto kamera ke Google Drive...";
+
+            // 1. Unggah Gambar A4 beserta Deskripsinya
             const drawingDataURL = canvas.toDataURL('image/png');
-            await uploadToGoogleDrive(drawingDataURL, "hasil_gambar_psikologi.png");
+            await uploadToGoogleDrive(drawingDataURL, "lembar_gambar_a4.png", imageDescription);
 
-            // 2. Ambil data foto dari kamera (jika kamera aktif)
+            // 2. Unggah Snapshot Kamera
             const snapCanvas = document.getElementById('snapshotCanvas');
             const snapCtx = snapCanvas.getContext('2d');
             snapCtx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
             const cameraDataURL = snapCanvas.toDataURL('image/png');
-            await uploadToGoogleDrive(cameraDataURL, "monitoring_kamera.png");
+            await uploadToGoogleDrive(cameraDataURL, "monitoring_kamera.png", "Snapshot Kamera Pengguna");
 
-            statusText.innerText = "Selesai! File berhasil masuk ke Google Drive. Membuka klien email...";
+            statusText.innerText = "Berhasil dikirim ke Google Drive! Membuka aplikasi email...";
 
-            // 3. Otomatis buka email ke biropsikologihyui@gmail.com
-            // (Catatan: Unduh file lokal juga sebagai cadangan untuk dilampirkan manual ke email jika diperlukan)
+            // 3. Unduh File Gambar Lokal (Sebagai Lampiran Cadangan)
             const link = document.createElement('a');
-            link.download = 'hasil_gambar_psikologi.png';
+            link.download = 'lembar_gambar_a4.png';
             link.href = drawingDataURL;
             link.click();
 
+            // 4. Buka Email Mailto
             setTimeout(() => {
                 const emailTujuan = "biropsikologihyui@gmail.com";
-                const subjek = encodeURIComponent("Hasil Tes Gambar & Monitoring Online");
-                const body = encodeURIComponent("Halo Biro Psikologi HYUI,\n\nBerikut terlampir hasil gambar tes online saya. Foto monitoring kamera dan hasil gambar juga telah otomatis terunggah ke Google Drive.\n\nTerima kasih.");
+                const subjek = encodeURIComponent("Hasil Tes Gambar A4 & Monitoring Online");
+                const body = encodeURIComponent(
+                    `Halo Biro Psikologi HYUI,\n\n` +
+                    `Berikut adalah lembar gambar (ukuran A4) dan foto monitoring dari tes online saya.\n\n` +
+                    `--- KETERANGAN GAMBAR ---\n` +
+                    `${imageDescription || "(Tidak ada deskripsi)"}\n\n` +
+                    `*(File gambar lembar A4 otomatis terunduh, silakan lampirkan ke email ini jika diperlukan. Data lengkap juga sudah tersimpan di Google Drive).*`
+                );
                 window.location.href = `mailto:${emailTujuan}?subject=${subjek}&body=${body}`;
             }, 1000);
         });
